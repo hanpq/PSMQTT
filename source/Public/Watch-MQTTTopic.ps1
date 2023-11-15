@@ -1,11 +1,11 @@
-function Send-MQTTMessage
+function Watch-MQTTToptic
 {
     <#
       .DESCRIPTION
       This function will publish a message to a MQTT topic.
 
       .EXAMPLE
-      Get-Something -Data 'Get me this text'
+      Watch-MQTTTopic -Session $Session -Topic "topic/#"
 
       .PARAMETER Session
       Defines the MQTTBroker session to use
