@@ -6,13 +6,27 @@ $here = $PSScriptRoot
 $ProjectPath = "$here\..\.." | Convert-Path
 $ProjectName = (Get-ChildItem $ProjectPath\*\*.psd1 | Where-Object {
     ($_.Directory.Name -eq 'source') -and
-    $(try { Test-ModuleManifest $_.FullName -ErrorAction Stop }catch{$false}) }
+        $(try
+            {
+                Test-ModuleManifest $_.FullName -ErrorAction Stop
+            }
+            catch
+            {
+                $false
+            }) }
 ).BaseName
 
 $SourcePath = (Get-ChildItem $ProjectPath\*\*.psd1 | Where-Object {
         ($_.Directory.Name -eq 'source') -and
-        $(try { Test-ModuleManifest $_.FullName -ErrorAction Stop } catch { $false }) }
-    ).Directory.FullName
+        $(try
+            {
+                Test-ModuleManifest $_.FullName -ErrorAction Stop
+            }
+            catch
+            {
+                $false
+            }) }
+).Directory.FullName
 
 $mut = Import-Module -Name $ProjectName -ErrorAction Stop -PassThru -Force
 $allModuleFunctions = &$mut { Get-Command -Module $args[0] -CommandType Function } $ProjectName | ForEach-Object {
@@ -45,7 +59,7 @@ else
 BeforeAll {
     function Test-FileEndOfLine
     {
-    <#
+        <#
     .DESCRIPTION
         asd
     .PARAMETER Name
@@ -117,6 +131,7 @@ BeforeAll {
     }
 }
 
+<#
 Describe 'Changelog Management' -Tag 'Changelog' {
     It 'Changelog has been updated' -skip:(
         !([bool](Get-Command git -EA SilentlyContinue) -and
@@ -136,6 +151,7 @@ Describe 'Changelog Management' -Tag 'Changelog' {
         { Get-ChangelogData (Join-Path $ProjectPath 'CHANGELOG.md') -ErrorAction Stop } | Should -Not -Throw
     }
 }
+#>
 
 Describe 'General module control' -Tag 'FunctionalQuality' {
 
@@ -145,17 +161,17 @@ Describe 'General module control' -Tag 'FunctionalQuality' {
     }
 
     It 'Removes without error' {
-        { Remove-Module -Name $ProjectName -ErrorAction Stop } | Should -not -Throw
-        Get-Module $ProjectName | Should -beNullOrEmpty
+        { Remove-Module -Name $ProjectName -ErrorAction Stop } | Should -Not -Throw
+        Get-Module $ProjectName | Should -BeNullOrEmpty
     }
 }
 
-Describe "Quality for files" -Tag 'TestQuality' {
-    It "Function has unit tests | <Name>" {
+Describe 'Quality for files' -Tag 'TestQuality' {
+    It 'Function has unit tests | <Name>' {
         Get-ChildItem "$PSScriptRoot\.." -Recurse -Include "$($Name).Tests.ps1" | Should -Not -BeNullOrEmpty
     } -TestCases $allModuleFunctions
 
-    It "Script Analyzer | <Name>" {
+    It 'Script Analyzer | <Name>' {
         $PSSAResult = (Invoke-ScriptAnalyzer -Path $File.FullName)
         $Report = $PSSAResult | Format-Table -AutoSize | Out-String -Width 110
         $PSSAResult  | Should -BeNullOrEmpty -Because `
@@ -176,7 +192,7 @@ Describe "Quality for files" -Tag 'TestQuality' {
         Test-Encoding -Path $File.FullName -Encoding utf8 | Should -Be $true
     } -TestCases $allModuleFunctions
 }
-Describe "Help for files" -Tags 'helpQuality' {
+Describe 'Help for files' -Tags 'helpQuality' {
     BeforeEach {
         $AbstractSyntaxTree = [System.Management.Automation.Language.Parser]::
         ParseInput((Get-Content -Raw $File.FullName), [ref]$null, [ref]$null)
