@@ -19,6 +19,9 @@ function Connect-MQTTBroker
       .PARAMETER Password
       Defines the password (securestring) to use when connecting to the MQTT Broker
 
+      .PARAMETER TLS
+      Defines if the connection should be encrypted
+
     #>
     [cmdletBinding()]
     param(

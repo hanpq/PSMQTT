@@ -21,7 +21,7 @@ BeforeDiscovery {
 }
 
 InModuleScope $ProjectName {
-    Describe Get-Something {
+    Describe Disconnect-MQTTBroker {
         Mock Invoke-GarbageCollect {} -Verifiable
 
         Context 'default' {
