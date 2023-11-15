@@ -1,4 +1,4 @@
-function Watch-MQTTToptic
+function Watch-MQTTTopic
 {
     <#
       .DESCRIPTION
@@ -27,7 +27,7 @@ function Watch-MQTTToptic
 
     try
     {
-        $Subscription = Register-ObjectEvent -InputObject $Session -EventName MqttMsgPublishReceived -Action {
+        Register-ObjectEvent -InputObject $Session -EventName MqttMsgPublishReceived -Action {
             [pscustomobject]@{
                 TimeStamp = (Get-Date)
                 Topic     = $args[1].topic
