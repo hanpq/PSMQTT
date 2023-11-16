@@ -61,7 +61,7 @@ function Connect-MQTTBroker
     }
 
     $MqttClient = New-Object -TypeName uPLibrary.Networking.M2Mqtt.MqttClient -ArgumentList $Hostname, $Port, $TLS, $null, $null, 'None'
-    $MqttClient.Connect([guid]::NewGuid(), $Username, ($Password.GetNetworkCredentials.Password))
+    $null = $MqttClient.Connect([guid]::NewGuid(), $Username, (([pscredential]::New($Username, $Password)).GetNetworkCredential().Password))
 
     return $MqttClient
 }
