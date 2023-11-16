@@ -16,6 +16,9 @@ function Send-MQTTMessage
       .PARAMETER Payload
       Defines the message as a string
 
+      .PARAMETER Quiet
+      Defines that messages are sent without outputing any objects.
+
     #>
     [cmdletBinding()]
     param(
@@ -29,17 +32,24 @@ function Send-MQTTMessage
 
         [Parameter()]
         [string]
-        $Payload
+        $Payload,
+
+        [Parameter()]
+        [switch]
+        $Quiet
     )
 
     try
     {
-        $PayloadBytes = [System.Text.Encoding]::UTF8.GetBytes($Payload)
-        $Session.Publish($Topic, $PayloadBytes)
-        [pscustomobject]@{
-            TimeStamp = (Get-Date)
-            Topic     = $Topic
-            Payload   = $Payload
+        $Message = [PSMQTTMessage]::New($Topic, $Payload)
+
+        # Publish message to MQTTBroker
+        $null = $Session.Publish($Message.Topic, $Message.PayloadUTF8ByteA)
+
+        # Return object unless quiet
+        if (-not $Quiet)
+        {
+            return $Message
         }
     }
     catch
