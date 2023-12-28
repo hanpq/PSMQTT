@@ -5,7 +5,7 @@ function Connect-MQTTBroker
       This function establishes a session with the MQTT broker and returns a session object that should then be passed along when using other cmdlets.
 
       .EXAMPLE
-      $MQTTSession = Connect-MQTTBroker -Hostname mqttbroker.contoso.com -Port 1234 -Username mqttuser -Password (ConvertTo-SecureString -String 'P@ssw0rd1' -AsPlainText -Force)
+      $Session = Connect-MQTTBroker -Hostname mqttbroker.contoso.com -Port 1234 -Username mqttuser -Password (ConvertTo-SecureString -String 'P@ssw0rd1' -AsPlainText -Force)
 
       .PARAMETER Hostname
       Defines the hostname of the MQTT Broker to connect to

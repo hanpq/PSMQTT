@@ -5,7 +5,7 @@ function Send-MQTTMessage
       This function will publish a message to a MQTT topic.
 
       .EXAMPLE
-      Get-Something -Data 'Get me this text'
+      Send-MQTTMEssage -Session $Session -Topic 'foo' -Payload '{"attribute":"value"}'
 
       .PARAMETER Session
       Defines the MQTTBroker session to use

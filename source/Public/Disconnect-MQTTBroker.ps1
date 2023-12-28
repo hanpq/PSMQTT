@@ -5,7 +5,7 @@ function Disconnect-MQTTBroker
       This function will disconnect a MQTTBroker session
 
       .EXAMPLE
-      Get-Something -Data 'Get me this text'
+      Disconnect-MQTTBroker -Session $Session
 
       .PARAMETER Session
       Defines the MQTTBroker session to use
