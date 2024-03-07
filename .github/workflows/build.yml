@@ -31,7 +31,7 @@ jobs:
     #runs-on: ubuntu-latest
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
       - name: Calculate ModuleVersion (GitVersion)
@@ -49,8 +49,9 @@ jobs:
         run: |
           ./build.ps1 -ResolveDependency -tasks pack
         shell: pwsh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          retention-days: 1
           name: output
           path: output
   Test_Linux_Core:
@@ -58,10 +59,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: Build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: output
           path: "output"
@@ -69,8 +70,9 @@ jobs:
         run: |
           ./build.ps1 -ResolveDependency -tasks test
         shell: pwsh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          retention-days: 1
           name: CodeCoverage_Linux_Core
           path: output/testResults/
   Test_Windows_Core:
@@ -78,10 +80,10 @@ jobs:
     runs-on: windows-latest
     needs: Build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: output
           path: "output"
@@ -89,8 +91,9 @@ jobs:
         run: |
           ./build.ps1 -ResolveDependency -tasks test
         shell: pwsh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          retention-days: 1
           name: CodeCoverage_Windows_Core
           path: output/testResults/
   Test_Windows_Desktop:
@@ -98,10 +101,10 @@ jobs:
     runs-on: windows-latest
     needs: Build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: output
           path: "output"
@@ -109,8 +112,9 @@ jobs:
         run: |
           ./build.ps1 -ResolveDependency -tasks test
         shell: powershell
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          retention-days: 1
           name: CodeCoverage_Windows_Desktop
           path: output/testResults/
   Test_MacOS_Core:
@@ -118,10 +122,10 @@ jobs:
     runs-on: macos-latest
     needs: Build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: output
           path: "output"
@@ -129,8 +133,9 @@ jobs:
         run: |
           ./build.ps1 -ResolveDependency -tasks test
         shell: pwsh
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          retention-days: 1
           name: CodeCoverage_MacOS_Core
           path: output/testResults/
   Publish_Code_Coverage:
@@ -142,33 +147,34 @@ jobs:
       - Test_Windows_Core
       - Test_Windows_Desktop
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: CodeCoverage_Linux_Core
           path: output/testResults/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: CodeCoverage_MacOS_Core
           path: output/testResults/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: CodeCoverage_Windows_Core
           path: output/testResults/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: CodeCoverage_Windows_Desktop
           path: output/testResults/
       - name: Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: civoShell
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./output/testResults/CodeCov.xml
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          retention-days: 1
           name: CodeCovState
           path: ./
 
@@ -182,7 +188,7 @@ jobs:
       - Test_Windows_Desktop
     if: ${{ success() && (github.ref == 'refs/heads/main' || StartsWith(github.ref,'refs/tags/')) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: "0"
       - uses: actions/download-artifact@v3
@@ -202,7 +208,7 @@ jobs:
     needs:
       - Deploy
     steps:
-      - uses: geekyeggo/delete-artifact@v2
+      - uses: geekyeggo/delete-artifact@v4
         with:
           name: |
             CodeCov*
