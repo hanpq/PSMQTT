@@ -7,6 +7,13 @@ function Connect-MQTTBroker
       .EXAMPLE
       $Session = Connect-MQTTBroker -Hostname mqttbroker.contoso.com -Port 1234 -Username mqttuser -Password (ConvertTo-SecureString -String 'P@ssw0rd1' -AsPlainText -Force)
 
+      Establish a MQTT Broker session with authentication
+
+      .EXAMPLE
+      $Session = Connect-MQTTBroker -Hostname mqttbroker.contoso.com -Port 1234
+
+      Establish a MQTT Broker session without authentication
+
       .PARAMETER Hostname
       Defines the hostname of the MQTT Broker to connect to
 
@@ -23,7 +30,7 @@ function Connect-MQTTBroker
       Defines if the connection should be encrypted
 
     #>
-    [cmdletBinding()]
+    [cmdletBinding(DefaultParameterSetName = 'Anon')]
     param(
         [Parameter(Mandatory)]
         [string]
@@ -33,11 +40,11 @@ function Connect-MQTTBroker
         [int]
         $Port,
 
-        [Parameter()]
+        [Parameter(Mandatory, ParameterSetName = 'Auth')]
         [string]
         $Username,
 
-        [Parameter()]
+        [Parameter(Mandatory, ParameterSetName = 'Auth')]
         [securestring]
         $Password,
 
@@ -48,6 +55,7 @@ function Connect-MQTTBroker
 
     #TODO implement additional connection properties like certificate ssl options etc. Different default ports based on
 
+    # Use default ports if none are specified
     if (-not $PSBoundParameters['Port'])
     {
         if ($TLS)
@@ -61,7 +69,18 @@ function Connect-MQTTBroker
     }
 
     $MqttClient = New-Object -TypeName uPLibrary.Networking.M2Mqtt.MqttClient -ArgumentList $Hostname, $Port, $TLS, $null, $null, 'None'
-    $null = $MqttClient.Connect([guid]::NewGuid(), $Username, (([pscredential]::New($Username, $Password)).GetNetworkCredential().Password))
 
+    switch ($PSCmdlet.ParameterSetName)
+    {
+        'Anon'
+        {
+            $null = $MqttClient.Connect([guid]::NewGuid())
+        }
+        'Auth'
+        {
+            $null = $MqttClient.Connect([guid]::NewGuid(), $Username, (([pscredential]::New($Username, $Password)).GetNetworkCredential().Password))
+        }
+    }
     return $MqttClient
+
 }
