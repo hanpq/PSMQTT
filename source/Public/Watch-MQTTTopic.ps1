@@ -2,7 +2,7 @@ function Watch-MQTTTopic
 {
     <#
       .DESCRIPTION
-      This function will publish a message to a MQTT topic.
+      This function will subscribe to message published to a MQTT topic.
 
       .EXAMPLE
       Watch-MQTTTopic -Session $Session -Topic "topic/#"
