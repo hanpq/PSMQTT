@@ -1,4 +1,4 @@
-BeforeDiscovery {
+﻿BeforeDiscovery {
     $RootItem = Get-Item $PSScriptRoot
     while ($RootItem.GetDirectories().Name -notcontains 'source')
     {
@@ -52,17 +52,17 @@ InModuleScope $ProjectName {
             }
 
             It 'Has the correct properties' {
-                $instance.topic | Should -be 'topic'
-                $instance.payload | Should -be 'payload'
+                $instance.topic | Should -Be 'topic'
+                $instance.payload | Should -Be 'payload'
 
                 # Powershell pipeline splits the array into single elements and pester
                 # only evaluates the first element. By passing the value to ActualValue
                 # to array is preserved and pester evaluates the array rather than the first element.
                 Should -ActualValue $instance.PayloadUTF8ByteA -BeOfType [byte[]]
-                $instance.Timestamp | Should -beoftype [datetime]
-                $instance.DupFlag | Should -befalse
-                $instance.QosLevel | Should -be 0
-                $instance.Retain | Should -befalse
+                $instance.Timestamp | Should -BeOfType [datetime]
+                $instance.DupFlag | Should -BeFalse
+                $instance.QosLevel | Should -Be 0
+                $instance.Retain | Should -BeFalse
             }
         }
     }

@@ -1,4 +1,4 @@
-BeforeDiscovery {
+﻿BeforeDiscovery {
     $RootItem = Get-Item $PSScriptRoot
     while ($RootItem.GetDirectories().Name -notcontains 'source')
     {
@@ -21,7 +21,7 @@ BeforeDiscovery {
 }
 
 InModuleScope $ProjectName {
-    Describe Assert-FolderExist {
+    Describe 'Assert-FolderExist' {
         Context 'Default' {
             It 'Folder is created' {
                 'TestDrive:\FolderDoesNotExists' | Assert-FolderExist
@@ -32,6 +32,14 @@ InModuleScope $ProjectName {
                 New-Item -Path 'TestDrive:\FolderExists' -ItemType Directory
                 'TestDrive:\FolderExists' | Assert-FolderExist
                 'TestDrive:\FolderExists' | Should -Exist
+            }
+        }
+    }
+
+    Describe 'Invoke-GarbageCollect' {
+        Context 'Default' {
+            It 'Should not throw' {
+                { Invoke-GarbageCollect } | Should -Not -Throw
             }
         }
     }
