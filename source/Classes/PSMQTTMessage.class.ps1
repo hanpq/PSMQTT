@@ -10,13 +10,17 @@
 
     PSMQTTMessage(
         [string]$Topic,
-        [string]$Payload
+        [string]$Payload,
+        [int]$QosLevel,
+        [boolean]$Retain
     )
     {
         $this.Topic = $Topic
         $this.Payload = $Payload
         $this.PayloadUTF8ByteA = [System.Text.Encoding]::UTF8.GetBytes($Payload)
         $this.Timestamp = (Get-Date)
+        $this.QosLevel = $QosLevel
+        $this.Retain = $Retain
     }
 
     PSMQTTMessage(

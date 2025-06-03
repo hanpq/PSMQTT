@@ -16,6 +16,12 @@ function Send-MQTTMessage
       .PARAMETER Payload
       Defines the message as a string
 
+      .PARAMETER QosLevel
+      Defines the Quality of Service level for the message.
+
+      .PARAMETER Retain
+      Defines if the message should be retained by the MQTTBroker.
+
       .PARAMETER Quiet
       Defines that messages are sent without outputing any objects.
 
@@ -36,15 +42,23 @@ function Send-MQTTMessage
 
         [Parameter()]
         [switch]
-        $Quiet
+        $Quiet,
+
+        [Parameter()]
+        [int]
+        $QosLevel = 0,
+
+        [Parameter()]
+        [switch]
+        $Retain
     )
 
     try
     {
-        $Message = [PSMQTTMessage]::New($Topic, $Payload)
+        $Message = [PSMQTTMessage]::New($Topic, $Payload, $QosLevel, $Retain)
 
         # Publish message to MQTTBroker
-        $null = $Session.Publish($Message.Topic, $Message.PayloadUTF8ByteA)
+        $null = $Session.Publish($Message.Topic, $Message.PayloadUTF8ByteA, $Message.QosLevel, $Message.Retain)
 
         # Return object unless quiet
         if (-not $Quiet)

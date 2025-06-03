@@ -30,7 +30,7 @@ InModuleScope $ProjectName {
 
         Context 'Constructors' {
             It 'Has a constructor constructor for sending' {
-                $instance = [PSMQTTMessage]::new('topic', 'payload')
+                $instance = [PSMQTTMessage]::new('topic', 'payload', 0, $false)
                 $instance | Should -Not -BeNullOrEmpty
                 $instance.GetType().Name | Should -Be 'PSMQTTMessage'
             }
@@ -38,7 +38,7 @@ InModuleScope $ProjectName {
 
         Context 'Methods' {
             BeforeEach {
-                $instance = [PSMQTTMessage]::new('topic', 'payload')
+                $instance = [PSMQTTMessage]::new('topic', 'payload', 0, $false)
             }
 
             It 'Overrides the ToString method' {
@@ -48,7 +48,7 @@ InModuleScope $ProjectName {
 
         Context 'Properties' {
             BeforeEach {
-                $instance = [PSMQTTMessage]::new('topic', 'payload')
+                $instance = [PSMQTTMessage]::new('topic', 'payload', 0, $false)
             }
 
             It 'Has the correct properties' {
@@ -57,7 +57,7 @@ InModuleScope $ProjectName {
 
                 # Powershell pipeline splits the array into single elements and pester
                 # only evaluates the first element. By passing the value to ActualValue
-                # to array is preserved and pester evaluates the array rather than the first element.
+                # the array is preserved and pester evaluates the array rather than the first element.
                 Should -ActualValue $instance.PayloadUTF8ByteA -BeOfType [byte[]]
                 $instance.Timestamp | Should -BeOfType [datetime]
                 $instance.DupFlag | Should -BeFalse
