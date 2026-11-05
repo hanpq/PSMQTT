@@ -8,7 +8,7 @@
 
 @{
     RootModule           = 'PSMQTT.psm1'
-    ModuleVersion        = '0.0.1'
+    ModuleVersion        = '1.2.0'
     CompatiblePSEditions = @('Desktop', 'Core')
     PowerShellVersion    = '5.1'
     GUID                 = '29cf60c3-0852-4305-b814-1523a170ce02'
@@ -33,5 +33,4 @@
         }
     }
 }
-
 
