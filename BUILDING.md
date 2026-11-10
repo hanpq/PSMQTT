@@ -70,6 +70,10 @@ Prereleases use padded labels such as `beta001`. Users must opt in when installi
 Install-Module PSMQTT -AllowPrerelease
 ```
 
+## Documentation publishing
+
+Stable releases update getps.dev through `scripts/Update-Docs.ps1`. Generated command help, README and changelog belong in `modules/<ModuleName>` at the documentation repository root. The site's separate module-docs plugin reads this folder; `docs/modules` belongs to the Knowledge Base instead.
+
 ## Update build dependencies
 
 1. Change the intended module version in [RequiredModules.psd1](RequiredModules.psd1).
