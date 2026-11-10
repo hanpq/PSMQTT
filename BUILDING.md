@@ -26,6 +26,8 @@ For a subset of tests, add Pester tags, for example `./build.ps1 -Task Test -Tes
 
 Coverage instruments the built module that the tests execute, then uses ModuleBuilder's source mappings to report the original `source/public` and `source/private` files in `output/testResults/JaCoCo_coverage.xml`. The build also prints the mapped source instruction coverage. The module test run fails if coverage is below the configured target (currently 1%).
 
+Public-command unit tests use typed MQTT clients with stubbed methods and do not connect to a broker. They check command arguments, returned messages, error handling and subscription cleanup; they do not replace integration tests against a real broker. The mapped coverage report excludes class files, so its percentage does not measure class coverage.
+
 PowerShell Gallery release notes are limited to 10,000 characters during the build. Longer notes are truncated at a line boundary and include a link to the full changelog.
 
 The `## [Unreleased]` section in `CHANGELOG.md` may be empty; release notes stay empty until entries are added.
