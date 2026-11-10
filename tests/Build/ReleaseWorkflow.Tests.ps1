@@ -8,6 +8,12 @@ BeforeAll {
 }
 
 Describe 'Release workflow contract' {
+    It 'runs the integration suite in CI' {
+        $ciWorkflow = Get-Content (Join-Path $projectRoot '.github\workflows\ci.yml') -Raw
+
+        $ciWorkflow | Should -Match "(?ms)^\s+integration:\s+name: Integration tests\s+if: github\.event_name != 'pull_request' \|\| github\.event\.pull_request\.head\.repo\.full_name == github\.repository.*?run: \./build\.ps1 -Task Test -TestSuite Integration"
+    }
+
     It 'names the manual workflow Prepare release and accepts only beta/stable choices' {
         $workflow | Should -Match '\Aname: Prepare release\r?\n'
         $workflow | Should -Match '(?s)workflow_dispatch:.*?type: choice.*?options:\s+- beta\s+- stable'

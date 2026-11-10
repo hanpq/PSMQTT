@@ -55,7 +55,7 @@ $sourceLines = @(
     foreach ($mapping in $mappedLines)
     {
         $relativePath = $mapping.SourceFile -replace '^\.[\\/]', '' -replace '\\', '/'
-        if ($relativePath -notmatch '^(private|public)/')
+        if ($relativePath -cnotmatch '^(private|public)/')
         {
             continue
         }

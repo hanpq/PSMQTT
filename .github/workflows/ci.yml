@@ -67,3 +67,13 @@ jobs:
       - name: Test build and release automation
         shell: pwsh
         run: ./build.ps1 -Task Test -TestSuite Infrastructure
+
+  integration:
+    name: Integration tests
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run integration test suite
+        shell: pwsh
+        run: ./build.ps1 -Task Test -TestSuite Integration

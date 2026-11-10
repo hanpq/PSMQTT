@@ -15,9 +15,14 @@ param
     $OutputDirectory,
 
     [Parameter()]
-    [ValidateSet('All', 'Module', 'Infrastructure')]
+    [ValidateSet('All', 'Module', 'Infrastructure', 'Integration')]
     [string]
     $TestSuite = 'All',
+
+    # Optional Pester tags to run a subset of tests. Coverage is skipped when set.
+    [Parameter()]
+    [string[]]
+    $Tag,
 
     [Parameter(DontShow)]
     [switch]
@@ -36,6 +41,12 @@ if (-not $InBuildProcess)
     $executable = Join-Path $PSHOME $executableName
     $arguments = @('-NoProfile', '-NonInteractive', '-File', $PSCommandPath, '-InBuildProcess', '-Task', $Task)
     $arguments += @('-TestSuite', $TestSuite)
+
+    if ($PSBoundParameters.ContainsKey('Tag'))
+    {
+        # Joined into one argument because -File does not preserve array arguments.
+        $arguments += @('-Tag', ($Tag -join ','))
+    }
 
     if ($PSBoundParameters.ContainsKey('Version'))
     {
@@ -177,6 +188,36 @@ function Import-BuildModule
     Import-Module -Name $moduleManifest -Global -ErrorAction Stop
 }
 
+function Limit-ReleaseNotes
+{
+    param
+    (
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string]
+        $ReleaseNotes
+    )
+
+    # PSGallery rejects ReleaseNotes above 10600 characters, so keep whole lines and link to the full changelog.
+    $maxReleaseNotesLength = 10000
+    if ($ReleaseNotes.Length -le $maxReleaseNotesLength)
+    {
+        return $ReleaseNotes
+    }
+
+    $changelogUrl = 'https://github.com/hanpq/PSLogs/blob/main/CHANGELOG.md'
+    $truncationNotice = "`n`nRelease notes are truncated. See the full changelog: $changelogUrl"
+    $cut = $ReleaseNotes.LastIndexOf("`n", $maxReleaseNotesLength - $truncationNotice.Length)
+    if ($cut -le 0)
+    {
+        throw 'Release notes cannot be shortened to fit the PowerShell Gallery limit.'
+    }
+
+    $limitedNotes = $ReleaseNotes.Substring(0, $cut).TrimEnd() + $truncationNotice
+    Write-Host "Release notes truncated to $($limitedNotes.Length) characters for PSGallery." -ForegroundColor Yellow
+    return $limitedNotes
+}
+
 function Build-ProjectModule
 {
     param
@@ -205,7 +246,7 @@ function Build-ProjectModule
 
     # Optional source layout; modules without these files or folders still build.
     $sourceDirectory = Split-Path -Parent $SourceManifest
-    $copyPaths = @(@('en-US', 'include') | Where-Object { Test-Path -LiteralPath (Join-Path $sourceDirectory $_) })
+    $copyPaths = @(@('en-US', 'include', 'format') | Where-Object { Test-Path -LiteralPath (Join-Path $sourceDirectory $_) })
     if ($copyPaths.Count -gt 0)
     {
         $buildParameters.CopyPaths = $copyPaths
@@ -251,7 +292,8 @@ function Build-ProjectModule
         throw "Could not find release notes for $ModuleName $ModuleVersion in CHANGELOG.md."
     }
 
-    Update-Metadata -Path $modulePath -PropertyName PrivateData.PSData.ReleaseNotes -Value $releaseNotesMatch.Groups['notes'].Value.Trim() -ErrorAction Stop
+    $releaseNotes = Limit-ReleaseNotes -ReleaseNotes $releaseNotesMatch.Groups['notes'].Value.Trim()
+    Update-Metadata -Path $modulePath -PropertyName PrivateData.PSData.ReleaseNotes -Value $releaseNotes -ErrorAction Stop
 
     $builtManifest = Import-PowerShellDataFile -LiteralPath $modulePath
     $expectedPrerelease = ($ModuleVersion -split '-', 2 | Select-Object -Skip 1) -join ''
@@ -273,9 +315,12 @@ function Invoke-ModuleTests
         [string]
         $ModuleVersion,
 
-        [ValidateSet('All', 'Module', 'Infrastructure')]
+        [ValidateSet('All', 'Module', 'Infrastructure', 'Integration')]
         [string]
-        $TestSuite = 'All'
+        $TestSuite = 'All',
+
+        [string[]]
+        $Tag
     )
 
     Write-Host 'Preparing Pester and PSScriptAnalyzer' -ForegroundColor Cyan
@@ -291,7 +336,8 @@ function Invoke-ModuleTests
     {
         'Module' { Join-Path $PSScriptRoot 'tests\Unit'; Join-Path $PSScriptRoot 'tests\QA' }
         'Infrastructure' { Join-Path $PSScriptRoot 'tests\Build' }
-        'All' { Join-Path $PSScriptRoot 'tests' }
+        'Integration' { Join-Path $PSScriptRoot 'tests\Integration' }
+        'All' { Join-Path $PSScriptRoot 'tests\Unit'; Join-Path $PSScriptRoot 'tests\QA'; Join-Path $PSScriptRoot 'tests\Build' }
     }
     $configuration.Run.PassThru = $true
     $configuration.Output.Verbosity = 'Detailed'
@@ -299,13 +345,18 @@ function Invoke-ModuleTests
     $configuration.TestResult.OutputFormat = 'NUnitXml'
     $configuration.TestResult.OutputPath = Join-Path $TestResultsDirectory "$ModuleName.Tests.xml"
     $builtModulePath = Join-Path (Join-Path (Join-Path $OutputDirectory $ModuleName) $ModuleVersion.Split('-')[0]) "$ModuleName.psm1"
-    $configuration.CodeCoverage.Enabled = $TestSuite -ne 'Infrastructure'
+    if ($Tag)
+    {
+        $configuration.Filter.Tag = $Tag
+    }
+    $configuration.CodeCoverage.Enabled = ($TestSuite -in @('All', 'Module')) -and -not $Tag
     $configuration.CodeCoverage.Path = @($builtModulePath)
     $configuration.CodeCoverage.OutputFormat = 'JaCoCo'
     $configuration.CodeCoverage.OutputPath = Join-Path $TestResultsDirectory 'JaCoCo_coverage.xml'
     $configuration.CodeCoverage.CoveragePercentTarget = 1
 
-    Write-Host "Running Pester tests for $ModuleName $ModuleVersion (suite: $TestSuite; coverage: $($configuration.CodeCoverage.Enabled.Value))" -ForegroundColor Cyan
+    $tagDescription = if ($Tag) { "; tags: $($Tag -join ', ')" } else { '' }
+    Write-Host "Running Pester tests for $ModuleName $ModuleVersion (suite: $TestSuite; coverage: $($configuration.CodeCoverage.Enabled.Value)$tagDescription)" -ForegroundColor Cyan
     $result = Invoke-Pester -Configuration $configuration
 
     if ($result.Result -ne 'Passed')
@@ -319,6 +370,16 @@ function Invoke-ModuleTests
             -ReportPath $configuration.CodeCoverage.OutputPath.Value `
             -BuiltModulePath $builtModulePath `
             -SourceDirectory (Join-Path $PSScriptRoot 'source')
+
+        [xml]$coverageReport = Get-Content -LiteralPath $configuration.CodeCoverage.OutputPath.Value -Raw
+        $instructionCounter = $coverageReport.SelectSingleNode('/report/counter[@type="INSTRUCTION"]')
+        $coveredInstructions = [long]$instructionCounter.covered
+        $totalInstructions = $coveredInstructions + [long]$instructionCounter.missed
+        if ($totalInstructions -gt 0)
+        {
+            $sourcePercent = [math]::Round(100 * $coveredInstructions / $totalInstructions, 2)
+            Write-Host "Source coverage from JaCoCo (public/private only): $sourcePercent% ($coveredInstructions of $totalInstructions instructions)" -ForegroundColor Cyan
+        }
 
         if ($result.CodeCoverage.CommandsAnalyzedCount -eq 0 -or
             $result.CodeCoverage.CoveragePercent -lt $configuration.CodeCoverage.CoveragePercentTarget.Value)
@@ -402,7 +463,8 @@ switch ($Task)
 
         if ($Task -in @('Test', 'Verify'))
         {
-            Invoke-ModuleTests -ModuleVersion $resolvedVersion -TestSuite $TestSuite
+            $testTags = @($Tag | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
+            Invoke-ModuleTests -ModuleVersion $resolvedVersion -TestSuite $TestSuite -Tag $testTags
         }
 
         if ($Task -eq 'Package')
