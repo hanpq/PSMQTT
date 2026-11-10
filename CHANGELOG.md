@@ -3,6 +3,12 @@
 The format is based on and uses the types of changes according to [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2](https://github.com/hanpq/PSMQTT/compare/v1.2.1...v1.2.2) (2026-11-10)
+
+### Bug Fixes
+
+* **docs:** publish module help to the correct site folder ([f43bad0](https://github.com/hanpq/PSMQTT/commit/f43bad09bfca17e9cd19e68b3c8fa2736c486f99))
+
 ## [1.2.2-beta001](https://github.com/hanpq/PSMQTT/compare/v1.2.1...v1.2.2-beta001) (2026-11-10)
 
 
